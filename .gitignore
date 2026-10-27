@@ -7,6 +7,8 @@ examples/*_preview.png
 *.gcode.3mf
 *.gcode
 !profiles/*.gcode
+# Pictures used by the docs are always kept
+!docs/images/**
 
 # Your own Bambu templates and private files
 template*.gcode.3mf
