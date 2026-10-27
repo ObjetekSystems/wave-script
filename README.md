@@ -5,8 +5,8 @@ FullControl-style **wavy, woven-strand** 3D prints, with **no slicer and no codi
 
 | | | |
 |---|---|---|
-| ![Open weave with a solid rim](docs/images/prints/open_weave_rim.jpg) | ![Lattice](docs/images/prints/lattice.jpg) | ![Chain mail](docs/images/prints/chainmail.jpg) |
-| Open weave, taller chain mail | Lattice (Weave Script) | Chain mail (Weave Script) |
+| ![Open weave with a solid rim](docs/images/prints/open_weave_rim.jpg) | ![Bulb Vase](docs/images/prints/bulb_vase.jpg) | ![Test Flair](docs/images/prints/test_flair.jpg) |
+| Open weave, taller chain mail | Bulb Vase (Wave Script) | Test Flair (Wave Script) |
 
 *Test prints on a Bambu Lab P2S in PLA, each with a solid rim on top.*
 
