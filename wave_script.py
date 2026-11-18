@@ -36,7 +36,7 @@ import trimesh
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from shapely.geometry.polygon import orient
 
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 HERE = Path(__file__).resolve().parent
 
@@ -68,6 +68,8 @@ class Settings:
     rim_fan: float = 1.0          # part-fan level while closing an open weave and printing the rim
     weave_height: int = 1         # laps stacked on each side before the strands cross (taller loops)
     top_layers: int = 2           # solid rim laps on top so the weave can't unravel (0 = none)
+    solid_bottom: float = 0.0     # mm of plain smooth wall above the base before the wave starts
+    solid_blend: float = 3.0      # mm over which the wave fades in above the solid bottom band
     tracking: bool = True         # carry each wave's position up from the lap below
     stagger: int = 0              # laps per row of loops; rows shift half a loop (0 = off)
     weave_gap: float | None = None        # mm open gap between strands (see-through weave)
@@ -319,6 +321,13 @@ def build_wall(mesh: trimesh.Trimesh, s: Settings, tp: Toolpath) -> None:
     while True:
         # how far this lap rises: normal, adaptive (thinner on steep walls) or rim
         slope = 0.0
+        # solid bottom band (0.7.3): 1 = plain wall, fading to 0 = full wave over solid_blend.
+        # Same blend as the densify band at the top: the wave shrinks to nothing and open
+        # weaves turn into normal stacked lines.
+        bot_f = 0.0
+        if s.solid_bottom > 0 and not rim_lap:
+            above = z_prev_end - z0 - s.solid_bottom
+            bot_f = 1.0 if above <= 0 else max(0.0, 1.0 - above / max(s.solid_blend, 1e-6))
         if lap == 0:
             rise = 0.0
         elif rim_lap:
@@ -332,6 +341,8 @@ def build_wall(mesh: trimesh.Trimesh, s: Settings, tp: Toolpath) -> None:
                 if cross_every and freeze is None:
                     freeze = lap
                 rise = hw + (h - hw) * dense_f
+            if bot_f > 0:
+                rise = hw + (h - hw) * max(bot_f, dense_f)
             if s.adaptive and not open_weave and slope > 1e-6:
                 target = min(h, max(s.min_layer_height, s.max_overhang / slope))
                 rise = min(target, prev_rise * 1.15)   # thin down at once, grow back gently
@@ -358,6 +369,8 @@ def build_wall(mesh: trimesh.Trimesh, s: Settings, tp: Toolpath) -> None:
             amp = close_from * (1 - (rim_lap - 1 + t) / n_close)   # shrink a little per lap
         elif rim_lap:
             amp = np.zeros(n)
+        if bot_f > 0:
+            amp = amp * (1.0 - bot_f)
         # wave position around the lap (0..1). Without tracking it's simply the fraction of
         # the way around this lap's outline. With tracking, each point takes the position of
         # the nearest point on the lap below, so waves stay stacked even when the outline
@@ -427,10 +440,11 @@ def build_wall(mesh: trimesh.Trimesh, s: Settings, tp: Toolpath) -> None:
                 e = np.array([line_area(lw, g) for g in gap]) / mm3_per_mm(s)
             else:
                 ratio = wall_ratio
-                if dense_f > 0:
+                solid_f = max(dense_f, bot_f)
+                if solid_f > 0:
                     # blend from the open-weave strand to a normal line filling the gap
                     solid = np.array([line_area(s.line_width, g) for g in gap]) / mm3_per_mm(s)
-                    ratio = wall_ratio * (1 - dense_f) + solid * dense_f
+                    ratio = wall_ratio * (1 - solid_f) + solid * solid_f
                 e = (t if lap == 1 else np.ones(n)) * ratio
             if rim_lap:
                 speed = min(speed, 15.0)   # slow rim so it bonds to the crossings below
@@ -966,6 +980,10 @@ def parse_args(argv=None):
                    help="laps stacked on each side before the strands cross; bigger = taller loops")
     g.add_argument("--top-layers", type=int, default=d.top_layers,
                    help="solid rim laps on top so the weave can't unravel (0 = none)")
+    g.add_argument("--solid-bottom", type=float, default=d.solid_bottom,
+                   help="mm of plain smooth wall above the base before the wave starts (0 = off)")
+    g.add_argument("--solid-blend", type=float, default=d.solid_blend,
+                   help="mm over which the wave fades in above --solid-bottom")
     g.add_argument("--no-tracking", action="store_true",
                    help="don't carry wave positions up from the lap below (the pre-0.6 behaviour)")
     g.add_argument("--stagger", type=int, default=d.stagger,
@@ -1005,7 +1023,7 @@ def main(argv=None) -> None:
         base_speed=a.base_speed, first_layer_speed=a.first_layer_speed, fan_layer=a.fan_layer,
         nozzle_temp=a.nozzle_temp, bed_temp=a.bed_temp, bed_x=a.bed_size[0], bed_y=a.bed_size[1],
         center_x=a.center[0] if a.center else None, center_y=a.center[1] if a.center else None,
-        max_height=a.max_height, flip=a.flip, weave_gap=a.weave_gap, stagger=a.stagger, tracking=not a.no_tracking, weave_height=a.weave_height, top_layers=a.top_layers, densify_height=a.densify_height, valley_depth=a.valley_depth, valley_slope=a.valley_slope, rim_fan=a.rim_fan, aux_fan=a.aux_fan,
+        max_height=a.max_height, flip=a.flip, weave_gap=a.weave_gap, stagger=a.stagger, tracking=not a.no_tracking, weave_height=a.weave_height, top_layers=a.top_layers, solid_bottom=a.solid_bottom, solid_blend=a.solid_blend, densify_height=a.densify_height, valley_depth=a.valley_depth, valley_slope=a.valley_slope, rim_fan=a.rim_fan, aux_fan=a.aux_fan,
         adaptive=a.adaptive, max_overhang=a.max_overhang, min_layer_height=a.min_layer_height, strand_diameter=a.strand_diameter, flavor="bambu" if a.bambu_template else "generic",
         start_gcode=a.start_gcode, end_gcode=a.end_gcode)
 

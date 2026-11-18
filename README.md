@@ -25,9 +25,19 @@ adjust every detail or your shape has steep sections. Both read the same models,
 Bambu template and write the same kind of files, and they live in the same folder (Weave Script
 uses Wave Script's code, so keep both files together). See the [Weave Script guide](docs/WEAVE_GUIDE.md).
 
-Current versions: Wave Script 0.7.2, Weave Script 0.4.5.
+Current versions: Wave Script 0.7.3, Weave Script 0.4.5, Wave Studio 0.1.0.
 
-**Never used a command line?** Start with [Command line basics](docs/COMMAND_LINE_BASICS.md).
+**Don't want to type commands?** Use **Wave Studio**, the point-and-click window: sliders for
+every setting, a Preview button, and a Generate button that writes the file for your printer.
+First time: install Python, then double-click `Install Wave Studio.bat`. After that, double-click
+`Wave Studio.bat` (Windows) or run `python wave_studio.py`.
+It has both scripts in one window, a quick preview in seconds, a 3D toolpath view you can turn like
+CAD (mouse, keyboard or buttons), dark mode, presets, and a Show command button that gives you the
+matching command line. See the [Wave Studio guide](docs/WAVE_STUDIO.md).
+
+![Wave Studio](docs/images/wave_studio.png)
+
+**Prefer the command line?** Start with [Command line basics](docs/COMMAND_LINE_BASICS.md).
 It takes about five minutes, and then you can copy and paste the example commands.
 
 **Printing on a Bambu Lab printer?** Make a template first: [Making a Bambu template](docs/BAMBU_TEMPLATE.md).

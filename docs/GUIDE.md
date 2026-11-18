@@ -5,6 +5,10 @@ how to print on a Bambu Lab printer, every example command, tuning tips, trouble
 and the test-print history. The [README](../README.md) has the short version and the
 settings tables.
 
+> **Prefer a window to the command line?** [Wave Studio](WAVE_STUDIO.md) has a slider for
+> every setting in this guide, a preview you can turn in 3D, and a Generate button. Its
+> **Show command** button gives you the matching command from this guide.
+
 ---
 
 ## 1. Background: why this tool exists
@@ -89,6 +93,9 @@ overwrites both files, so use `-o` to keep versions you want to compare.
 ---
 
 ## 3. Installing (Windows)
+
+> **Shortcut:** after step 1, double-click **`Install Wave Studio.bat`** in the Wave Script
+> folder. It does steps 2-4 for you and also sets up [Wave Studio](WAVE_STUDIO.md).
 
 1. Install **Python 3.10 or newer** from [python.org](https://www.python.org/downloads/).
    During setup, tick **"Add python.exe to PATH"**.
@@ -356,6 +363,24 @@ python wave_script.py examples/test_cylinder.stl --bambu-template examples/templ
 **No top rim (open top edge):**
 ```
 python wave_script.py examples/test_cylinder.stl --bambu-template examples/template.gcode.3mf --top-layers 0
+```
+
+### Smooth band at the bottom (Wave Script 0.7.3)
+
+`--solid-bottom` prints a plain, smooth wall from the base up to that height (mm), then the
+wave fades in over `--solid-blend` mm (default 3). It works for solid and open weaves: in the
+band an open weave prints as normal stacked lines, then opens up above it. The flat floor
+underneath is still `--base-layers`. Without `--solid-bottom` the output is exactly the same as
+0.7.2. (Weave Script does the same with `--zones "0-10:solid"`.)
+
+**10 mm smooth foot, then the wave:**
+```
+python wave_script.py examples/test_cylinder.stl --bambu-template examples/template.gcode.3mf --solid-bottom 10
+```
+
+**Open weave lamp shade with a smooth 12 mm collar and a slow 5 mm fade-in:**
+```
+python wave_script.py examples/test_cylinder.stl --bambu-template examples/template.gcode.3mf --base-layers 0 --weave-gap 0.3 --amplitude 1.5 --stagger 2 --speed 15 --solid-bottom 12 --solid-blend 5
 ```
 
 ### Steep shapes

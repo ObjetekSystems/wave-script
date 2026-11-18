@@ -26,3 +26,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# Wave Studio remembers your last settings here
+wave_studio_settings.json
